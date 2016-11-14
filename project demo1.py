@@ -460,7 +460,9 @@ def openingIt():
     # this is the string in which , using the in function in the if condition,
     # we can look for
     # the keyword which is the substring
+    
     for filename in os.listdir(os.getcwd()+"\\recipes"):
+        cwd=os.getcwd()
         nameofFile=join(cwd+"\\recipes",filename)
         f=open(nameofFile, 'r') 
         txt=f.read()
@@ -614,6 +616,7 @@ def open_recipe():
     global Box
     global ingBox
     name=Box.get(ACTIVE)
+    cwd=os.getcwd()
     # the recipe to be opened is in the listbox called Box
     # however this was saved with the name "recipenameprotocol" in the directory
     # so protocol_file is a variable that stores this name as it is in the directory
@@ -755,7 +758,7 @@ def open_recipe():
 # search results window)
 # and is called lb
 def open_rcp():
-    
+    cwd=os.getcwd()
     global lb
     
     global ingBox
