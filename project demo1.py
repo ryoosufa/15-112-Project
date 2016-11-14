@@ -357,7 +357,9 @@ def openGrocery():
     # the user will be appended to a list which was empty initially
     # and from this list to the listbox in the grocery list window
     if listItems!=None and (len(listItems))!=0:
+        print "list of items", listItems 
         for i in range (len(listItems)):
+            print "inserting items"
             Box1.insert(END,listItems[i])
 
 
