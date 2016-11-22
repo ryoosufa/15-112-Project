@@ -360,7 +360,6 @@ def countfiles(serverString):
 
 def getMail(s):
     content=[]
-    l=[]
     # s.send sends "@rxmsg" as described in the  protocol
     s.send("@rrxmsg")
     # the variable recvd stores what the server sends back, this is striped to remove spaces and next line characters, etc 
@@ -405,85 +404,143 @@ def getMail(s):
         
         
         for i in range (len(liststrs)):
-
-            if "@" in liststrs[i]:
-                found=(liststrs[i]).index("@")
+            found=(liststrs[i]).index("@")
             each_file=liststrs[i]
             usernm=each_file[:found]
             newSlice=each_file[found+1:]
-            if "@" in newSlice:
-                newIndex=newSlice.index("@")
+            newIndex=newSlice.index("@")
             filName=newSlice[:newIndex]
             newIndex=newIndex+1
             actualcontent=newSlice[newIndex:]
             tuup=(usernm,filName,actualcontent)
-            tup=(usernm,filName)
             l_actualcont.append(tuup)
-            l.append(tup)
-            
 
         print "list of tuples",l_actualcont
-
-
-
-        for k in range(len(l_actualcont)):
-            tup1=l_actualcont[k]
-            us=tup1[0]
-            fil=tup1[1]
-            filcont=tup1[2]
-                
-
-        
-        
-      
-            File_name=str(fil)
-            File_name=File_name.strip()
-            Filename=File_name.replace("protocol","")
-            if "recipes" in Filename:
-                Ind=Filename.index("recipes")
-                Ind=Ind+8
-                Filename=Filename[Ind:]
-                print Filename, "For adding to Allnames.txt"
-
-
-                
             
-           
-
-            
-            if isfile("Allnames.txt"):
-                f = open("Allnames.txt")
-                text = f.read()
-                f.close()
         
     
-                f = open("Allnames.txt", 'w')
-                F=Filename.replace("protocol","\n")
+
+
+
+
+
+
+
+
+
+    
+    recvd=recvd.strip()
+    
+    recvd=recvd.replace("@",",")
+    #all the "@" characters are replaced by a comma in this string
+
+    #it is converted to a list using a split function which has each string (separated by a comma) as an element inside this string
+    #this list is called recvd_content
+    recvd_content=recvd.split(",")
+
+    #Contentlist,Msgs,and Files are initially empty lists 
+    Contentlist=[]
+    Msgs=[]
+    Files=[]
+    #then usernames and messages are appended to "Msgs" as tuples
+    #and usernames and filenames are appended to "Files" as tuples also
+
+
+    #Contentlist is empty initially , then using a for loop which goes through each element of the list "recvd_content"
+    #appends each element to Contentlist, because recvd_content contained each string from the file received as an element of the list
+    #according to the protocol the file which is received has the username of the user sending it followed by the name of the file,followed by
+    #whatever is contained in the file as strings, this was stored in the recvd_content after spliting it into a list
+    #the range of the for loop is from 2, because the first two elements need not to be added, they only represent  the  size
+    #of whatever is sent by the server and the number of items(number of messages and files) received by the user who is logged in
+    for t in range(2,(len(recvd_content))):
+        Contentlist.append(recvd_content[t])
+
+    print "Contentlist =" , Contentlist
+    #according to the protocol the username of the person sending a file/message is always
+    #followed by the message otherwise the file name then its content
+    #but the word "msg" and "file" indicate whether the next string will be corresponding to  a file or a msg
+    #since the size and number of items received was not added
+    #the "Contentlist" will look somewhat like this :
+    # ["msg","ryoosufani","hey","file","hanna22","sample.txt","rija i made this file so you could test"]
+    #if for example a user named "ryoosufani" sent a message which read "hey" and another user named "hanna22" sent a file
+    #called "sample.txt" which contained the text "rija i made this file so you could test" then the list above would be the "Contentlist"
+    #and the first index will always be the string "msg" or "file"
+
+    for i in range(len(Contentlist)):
+        #the for loop goes through the entire list from beginning to end
+        #if it comes across the string "msg" which indicates a new message has been received
+        #it appends to "Msgs" the message and the username of the person who sent it  and the message itself
+        #so if the list at index i is "msg" at (i+1) it will be the name of the  user and at (i+2) will be the message itself
+        
+        if Contentlist[i]=="msg":
             
-                f.write("//"+F+"\n")
-    # write the original contents
-                f.write(text)
-                f.close()
-            '''if not isfile("Allnames.txt"):
-    # if the file names.txt does not exist
-    # for example when running the app for
-    # the first time then this file is
-    # created automatically
-                F=Filename.replace("protocol","\n")
+            
+            Msgs.append((Contentlist[i+1],Contentlist[i+2]))
+
+        #if it comes across the string "file" which indicates a new file has been received
+        #it appends to "Files" the username of the person who sent it  and the filename 
+        #so if the list at index i is "file" at (i+1) it will be the name of the  user and at (i+2) will be the filename
+        '''print "this is it",Contentlist'''
+        if Contentlist[i]=="file":
+            
+            
+            Files.append((Contentlist[i+1],Contentlist[i+2]))
+            #index=Contentlist.index('#')
+            #print "this is the last ind of #", index
+            #print "contentlist from hashtag onwards", Contentlist[index+1:]
+            print Files,"list of file and user"
+            cwd=os.getcwd()
+            #to download  the file, we need to make a new file in the same folder/directory which has the same name as the
+            #name of the file received
+            #so "File_name" is the string which is the name of the file received
+            File_name=str(Contentlist[i+2])
+            File_name=File_name.strip()
+            Filename=File_name.replace("protocol","")
+
+            k=4
+            print "k", k, Contentlist[5], "this was list[5]"
+            print Contentlist[k]
+            print k<(len(Contentlist))
+            while k<(len(Contentlist)) and Contentlist[k]!="file":
+                "entered while loop"
+                content.append(Contentlist[k])
+                k=k+1
+
+            print "content", content
+
+            if isfile(File_name.strip())==False:
+                if isfile("Allnames.txt"):
+                    f = open("Allnames.txt")
+                    text = f.read()
+                    f.close()
+            
+        # open the file again for writing
+        # for not loosing the names of different recipes
+        # already present they are saved in "text"-a variable
+                    f = open("Allnames.txt", 'w')
+                    F=File_name.replace("protocol","")
+                    print "written to names",F
+                    f.write("//"+F)
+        # write the original contents
+                    f.write(text)
+                    f.close()
+            else:
+        # if the file names.txt does not exist
+        # for example when running the app for
+        # the first time then this file is
+        # created automatically
+                F=File_name.replace("protocol","")
                 
-            
+                
                 f = open("Allnames.txt", 'w')
                 f.write("//"+F)
-                f.close()'''
-
-            cwd=os.getcwd()
-            
-            Path="recipes\\"+Filename
-
-
-
+                f.close()
 
             
+            Path=join(cwd+"\\recipes",File_name)
+            print "this is the path", Path
+            print "saves with this name in recipes folder", File_name
+
             #to create a file with this filename, or overwrite one that exists with the same name in this directory
             #we need to open that file for writing
             DownloadFile=open(Path,'w')
@@ -492,25 +549,44 @@ def getMail(s):
             #hence "Contentlist[i+3]" is the file content and is to be saved/written to the file opened for writing
             for j in range (len(l_actualcont)):
                 firstup=l_actualcont[j]
-                print firstup, "going to write to file"
-                if Filename in firstup[1]:
-                    print firstup[2]
+                if File_name in firstup:
                     cont=firstup[2]
-                    
+                    print "gonna write ti file",cont 
                 
 
 
 
 
                     DownloadFile.write(cont)
-                    DownloadFile.close()
-                    
-    return l
-        
-    
-menu=None
 
-Box=None
+
+            #this last if statement makes sure that the file called "ryoosufahw7" which i am writing this code on, is not overwritten
+            #if someone tries to be evil enough to send me another file with the same name and destroy my homework
+            if "ryoosufahw7" in Contentlist[i+2]:
+                #instead of overwriting my file, the "DownloadFile" variable opens a file named "you can't destroy my homework.txt"
+                DownloadFile=open("you can't destroy my homework",'w')
+                #and writes to it whatever is received, and saves my original file, by changing the name the file is downloaded successfully
+                #but my original file remains unchanged
+                DownloadFile.write(Contentlist[i+3])
+
+
+
+
+    #outside the for loop is the return (Msgs,Files) , which returns a tuple of two lists
+    #one list has been used for messages and contains tuples
+    #the other one too contains tuples but is  used for files
+    return (Msgs,Files)
+    
+            
+
+
+    
+
+    
+    
+
+
+
 
 
 
@@ -581,7 +657,6 @@ class recipe:
     # the application is closed
     # and each time the app is run the recipes are read and shown
     def addRecipe(self):
-        global Box
         cwd = os.getcwd()
         name_recipe=self.box.get('0.0',END)
 
@@ -613,35 +688,41 @@ class recipe:
                 f.write("//"+name_recipe)
                 f.close()
 
-       
-        if isfile("Allnames.txt"):
-            g = open("Allnames.txt")
-            text = g.read()
-            g.close()
-            g= open("Allnames.txt", 'w')
-            g.write("//"+name_recipe)
-            g.write(text)
-            g.close()
-        else:
-            g = open("Allnames.txt", 'w')
-            g.write("//"+name_recipe)
-            g.close()
 
+            if isfile("Allnames.txt"):
+                g = open("Allnames.txt")
+                text = g.read()
+                g.close()
+            
+        # open the file again for writing
+        # for not loosing the names of different recipes
+        # already present they are saved in "text"-a variable
+                g = open("Allnames.txt", 'w')
+                g.write("//"+name_recipe)
+        # write the original contents
+                g.write(text)
+                g.close()
+            else:
+        # if the file names.txt does not exist
+        # for example when running the app for
+        # the first time then this file is
+        # created automatically
+                g = open("Allnames.txt", 'w')
+                g.write("//"+name_recipe)
+                g.close()
+                
 
 
         # getting the name of the recipe entered by the user
         name_recipe=self.box.get('0.0',END)
-        name=name_recipe.strip()
         name_recipe=name_recipe.strip()
         name_recipe=name_recipe.replace(" ","")
         
         # cwd has the path of the current directory
         # now looks inside folder  "recipes" in this path
         if exists(cwd+"\\recipes"):
-            print "yes recipes folder does exist"
            
             recipepath=join(cwd+"\\recipes",name_recipe+"protocol")
-            print "recipe path", recipepath
             # for each new recipe the protocol is stored with
             # the name "your recipeprotocol",
             # for example if the name is "Pasta" it will
@@ -666,7 +747,7 @@ class recipe:
         # each of name, ingredients, etc are started with
         # an "@" and a newline character end with a
         # newline character then a "#"
-            strings=["@\n"+name+"\n#",
+            strings=["@\n"+name_recipe+"\n#",
                      "\n@\n"+ingredients+"\n#",
                      "\n@\n"+instructions+"\n#",
                      "\n@\n"+people+"\n#",
@@ -681,9 +762,7 @@ class recipe:
             # it makes a folder "recipes" in the current
             # directory and the rest of the procedure is
             # the same as explained above
-            os.makedirs(cwd+"\\recipes")
-            recipepath=join(cwd+"\\recipes",name_recipe+"protocol")
-            print "since it just made recipes folder the new path now is", recipepath
+            makedirs(cwd+"\\recipes")
             DownloadFile=open(recipepath,'w')
     
     
@@ -703,16 +782,6 @@ class recipe:
                      "\n@\n"+time+"\n#"]
             for i in range(len(strings)):
                 DownloadFile.write(strings[i])
-        DownloadFile.close()
-        if sendFile(socket,recipepath):
-            Opn=Tk()
-            L=Label(Opn,text="Done!")
-            L.pack()
-            if  Box!=None:
-               
-        
-                Box.insert(0,name)
-                
 
 
 
@@ -949,17 +1018,6 @@ def createRecipe():
     r=recipe()
 
 
-
-def wnClosed(event):
-    global Box
-    Box=None
-
-'''def delR():
-    global Box
-    remove=Box.get(ACTIVE)'''
-    
-
-
 # this function is called when the "My Recipes" button is pressed
 # from the main menu
 # it has a listbox which has all the recipes which have
@@ -969,17 +1027,17 @@ def recipebox():
     openit=Tk()
     openit.title("My recipes")
     label1=Label(openit,text="Recipes")
-    
+    label1.pack()
     Box=Listbox(openit,width="30",height="25")
-    
+    Box.pack()
     
     
     openBtn=Button(openit,text="Open",command=open_recipe)
-    
+    openBtn.pack()
     favsBtn=Button(openit,text="Add to Favourites",command=go_favz)
-    
-    delbtn=Button(openit,text="Delete recipe from the cookbook",command=lambda Box=Box: Box.delete(ANCHOR))
-    
+    favsBtn.pack()
+    delbtn=Button(openit,text="Delete recipe from the cookbook")
+    delbtn.pack()
     
     # the names of these recipes were stored in the file called "names.txt"
     # so if the name is there it always starts with a "//" as an indication
@@ -1006,14 +1064,8 @@ def recipebox():
         for i in range(len(text)):
             if text[i] not in Box.get(0,END):
                 Box.insert(END,text[i])
-    label1.pack()
-    Box.pack()
-    openBtn.pack()
-    favsBtn.pack()
-    delbtn.pack()
-    openit.bind('<Destroy>',wnClosed)
+
     openit.mainloop()
-    
 
 
 
@@ -1178,69 +1230,17 @@ def go_favz():
 
 listItems=[]
 
-def windowClosed(event):
-    global Box1
-    Box1=None
 
-Box1=None
+
+
 # this  function is responsible to add ingredients to the
 # grocery list i.e. the listbox which contains all the ingredients
 # which the user added to from different recipes
 def go_shopping():
-
-
-
+    
     global ingBox
     global Box1
     global listItems
-    item=ingBox.get(ACTIVE)
-    if isfile("Grocerylist.txt"):
-        f = open("Grocerylist.txt")
-        text = f.read()
-        f.close()
-        f = open("Grocerylist.txt", 'w')
-        f.write("!!"+item+"\n")
-        # write the original contents
-        f.write(text)
-        f.close()
-    else:
-        # if the file names.txt does not exist
-        # for example when running the app for
-        # the first time then this file is
-        # created automatically
-        f = open("Grocerylist.txt", 'w')
-        f.write("!!"+item+"\n")
-        f.close()
-
-
-    if Box1==None:
-        #openfile=open("")
-        item=ingBox.get(ACTIVE)
-        
-        listItems.append(item)
-    else:
-        present=Box1.get(0,END)
-        
-        present=list(present)
-        
-        item=ingBox.get(ACTIVE)
-        
-        if len(present)==0:
-            Box1.insert(END,item)
-
-        else:
-            # if it does not contain the same ingredient already then the ingredient
-            # is added to  Box1 using the .insert() function
-            for i in range (len(present)):
-                if item not in present:
-        
-                    Box1.insert(END,item)
-    
-
-
-    
-    
-    
     # in case the user adds something to the grocery list and this listbox
     # called Box1 has not been created then it equals None
     # because box1 is created by a function which is called when
@@ -1253,7 +1253,7 @@ def go_shopping():
     # that list will be checked for elements(ingredients)
     # when box1 will be created ie whenever the user views the grocery list
     if Box1==None:
-        #openfile=open("")
+        openfile=open("")
         item=ingBox.get(ACTIVE)
         
         listItems.append(item)
@@ -1302,19 +1302,17 @@ def open_recipe():
     global Box
     global ingBox
     name=Box.get(ACTIVE)
-    name=name+"protocol"
     cwd=os.getcwd()
     # the recipe to be opened is in the listbox called Box
     # however this was saved with the name "recipenameprotocol" in the directory
     # so protocol_file is a variable that stores this name as it is in the directory
-    #protocol_file=join("\\recipes",name+"protocol")
-    protocol_file="recipes\\"+name
+    protocol_file=join(cwd+"\\recipes",name+"protocol")
+    
     openwindow=Tk()
     btn=Button(openwindow,text="save to your computer")
     btn.grid(row=0,column=0)
     label=Label(openwindow,text="Name")
     label.grid(row=1,column=0)
-    
     label1=Label(openwindow,text="Ingredients")
     label2=Label(openwindow,text="Preparation Time")
     label3=Label(openwindow,text="serves:")
@@ -1348,7 +1346,7 @@ def open_recipe():
     # the variable f stores all the lines as strings
     # as elements in a list
     # after the file is opened to read  in a variable "f"
-    f=open(protocol_file.replace(" ","")).readlines()
+    f=open(protocol_file).readlines()
     #nodestart is another variable that keeps track if
     # some part of the recipe has started
     # or is it just a # or @ or other parts of the protocol
@@ -1633,6 +1631,7 @@ def start():
     global menu
     global Txt
     menu=Tk()
+    menu.title("The Cookbook Club")
     button1=Button(menu,text="Add New Recipe",command=createRecipe)
     button1.grid(row=0,column=0)
     
@@ -1679,31 +1678,30 @@ def start():
     Txt.delete(0,END)'''
 
 
-
+menu=None
 #this function is  basically used as a timer
 #to keep checking is anything new is happening while still logged in, its just like refreshing
 #it is a timer because it calls itself after every 7 seconds
 def check():
+    
     #chatWindow is the window which displays the menu with listboxes of requests,friends, and users
     #from the previous functions in homework 7 getMail returns a tuple of lists and these lists contain tuples of username and  message
+    global root
     global menu
     global socket
     global Txt
-    global root
-    u=loginlist[0]
-    if Txt!=None:
-        anything=Txt.get("0.0",END)
-        anything=anything.strip()
-        
-        if len(anything)==0:
-            Txt.insert("1.0","No new recipes as yet!")
+    anything=Txt.get("0.0",END)
+    anything=anything.strip()
+    print "ohhh", anything
+    if len(anything)==0:
+        Txt.insert("1.0","No new recipes as yet!")
         
     if menu!=None:
         tuples=getMail(socket)
         #the variable tuples is this tuple
         #msgz is list of tuples of users and messages
         
-        
+        filez=tuples[1]
 
                 
         
@@ -1720,50 +1718,61 @@ def check():
         #the second instance is when the window of a specific user is already open and the dictionary contains the key named the username of the
         #person whose window is already opened or with whom a conversation is already in progress
         Files=[]
-        for i in range (len(tuples)):
+        for i in range (len(filez)):
 
-            
-            user = tuples[i][0]
-            filee = tuples[i][1]
+            #user is a variable which stores the name of the user from the tuple inside the list
+            #so msgz[i] for example could look like ("maimoon","how are you?")
+            #then it goes from the zeroth index to the length which means the last one thats why msgz[i] uses "i" as the index
+            #however in each tuple a format is fixed that the first element in the tuple will be the username and the second one will have the message
+            #so msgz[i][0] could be for example= "maimoon" according to the above tuple i gave as an example
+            #this is stored in a variable called user
+            #another variable called msg stores the msg which in this case will be "how are you" and hence is equal to msgz[i][1]
+            #for each tuple in msgz it either goes into the if or else
+            user = filez[i][0]
+            filee = filez[i][1]
             filee=filee.replace("protocol","")
-            if user==u:
-                user="you"
+            
+            
+            
+                
             displaymsg=user+" just added a recipe:"+filee+"\n"
-            #print "display msg:", displaymsg,"\\recipes" in displaymsg
-            if (Txt.get("0.0",END)).strip()=="No new recipes as yet!":
-                Txt.delete('1.0', END)
-
-            if "recipes" in displaymsg:
-                Ind=displaymsg.index("recipes")
-                Ind=Ind+8
-                displaymsg=user+" just added a recipe for:"+displaymsg[Ind:]
-                print "noooo", displaymsg, "was gonna add this to newsfeed"
+            Txt.delete('1.0', END)
+            Txt.insert(END,displaymsg)
                 
-            
-            
-            
-                
-            
-                
-                
-            Txt.insert(1.0,displaymsg)
-
-        menu.after(7000,check) 
-    else:
-        root.after(7000,check)
-                
-                
-            
-                
-
+           
+        menu.after(7000,check)    
+    else:      
+        root.after(7000,check)       
             
         
+            
 
-    #menu.after(7000,check)
+        
+    
+    
     #menu.bind('<Destroy>',windowClosed)
             
 
+def Help():
+    
+    wn=Tk()
+    wn.title("How to Use")
 
+    TextB=Text(wn)
+    TextB.insert("1.0","The all-new, My Digital Cookbook makes cooking fun! Take as many recipes as you want, your grocery list,"+
+                 " and your entire cookbook anywhere.\nThis cookbook is the ultimate tool to help"+
+                 " home cooks get inspired and organizedin the kitchen and on the go.\n\nBe Social as you cook!\n"
+    +"Get your friends and family download this app and get inspired by what they haveto share!"+
+            "Exchange, share and save recipes! Your Newsfeed will always keep you updated!\n")
+    TextB.insert("11.0","\nGrocery List\n"+
+     "Shop smart!!! Create a grocery list for your household."+
+                 
+                 "Easily mark them off or remove them as you shop.\n\n"+
+                 "Activity\n"+
+                    "Get notified when someone posts a recipe!")
+    TextB.pack()
+    
+    wn.mainloop()
 
 
 def logging_in():
@@ -1771,7 +1780,7 @@ def logging_in():
     #the layout of this window contains 3 listboxes all stored in separate variables
     #listbox1 contains all the users, listbox2 contains all the friends and listbox3 displays all your pending requests
     #quite a few of the variables have been made global as they are being used inside other functions in different sequences in which they are called
-    
+    global root
     global chatwindow
     global loginWindow
     global socket
@@ -1797,20 +1806,19 @@ def logging_in():
     #if its correct then this loginWindow must close and the "chatwindow" must show up and the 
     if login(socket,username,password):
         # code to initialize all the global variables being used  above
-        loginWindow.destroy()
 
-        root = Tk()
+        
 
         # the first window being opened by .Tk() has an image on it which
         # is saved in the same folder and called "startup.jpg"
         # the following is the layout for thr gui of the first window that opens up
-        path = 'startup.jpg'
+        '''path = 'startup.jpg'
         img = ImageTk.PhotoImage(Image.open(path))
         panel =Label(root, image = img)
-        panel.pack(side="bottom", fill = "both", expand = "yes")
-        
+        panel.pack(side="bottom", fill = "both", expand = "yes")'''
+        root = Tk()
         root.title("My Digital CookBook")
-        help_btn=Button(root,text="About")
+        help_btn=Button(root,text="About",command=Help)
         help_btn.pack()
         btn=Button(root,text="Join the Cookbook Club",command=start)
         btn.pack()
@@ -1827,7 +1835,7 @@ def logging_in():
         root.mainloop()
 
         
-        
+        loginWindow.destroy()
 
 
 
@@ -1908,4 +1916,5 @@ lb=None
 showit=None
 Box=None
 Box1=None
+root=None
 ingBox=None
