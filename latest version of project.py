@@ -2,7 +2,7 @@ from os.path import *
 import os
 from Tkinter import *
 from PIL import ImageTk, Image
-
+import random
 
 import socket
 
@@ -357,8 +357,9 @@ def countfiles(serverString):
 #one list has the tuples containing the username and the message(a string) sent by that user
 #the other one contains tuples which have the username and the name of the file sent by  that user
 #also on receving a file it downloads that and saves its content to a file
-
+recBox=None
 def getMail(s):
+    global recbox
     content=[]
     l=[]
     # s.send sends "@rxmsg" as described in the  protocol
@@ -464,6 +465,72 @@ def getMail(s):
     # write the original contents
                 f.write(text)
                 f.close()
+
+
+
+
+
+        for m in range(len(l)):
+            nameOfFile=l[i][1]
+            nameOfFile=nameOfFile.strip()
+            if recBox!=None:
+                if "recipes" in nameOfFile:
+                    Ind=nameOfFile.index("recipes")
+                    Ind=Ind+8
+                    nameOfFile=nameOfFile[Ind:]
+                if "protocol" in nameOfFile:
+                    nameOfFile=nameOfFile.replace("protocol","")
+                if nameOfFile not in recBox.get(0,END):
+                    recBox.insert(0,nameOfFile)
+                    
+
+
+        '''for b in range(len(l)):
+            name_r=l[i][1]
+            name_r=name_r.strip()
+            if "recipes" in name_r:
+                Ind=name_r.index("recipes")
+                name_r=name_r[Ind:]
+
+            if "protocol" in name_r:
+                name_r=name_r.replace("protocol","")
+            l[i][1]=name_r'''
+
+        if isfile("search.txt"):
+            g = open("search.txt")
+            text = g.read()
+            g.close()
+            g= open("search.txt", 'w')
+            for n in range(len(l)):
+                before=l[n][1]
+                if "protocol" in before:
+                    before=before.replace("protocol","")
+                if "recipes" in before:
+                    INDEX=before.index("recipes")
+                    INDEX=INDEX+8
+                    before=before[INDEX:]
+                
+                g.write(l[n][0]+"$"+before+"\n")
+            g.write(text)
+            g.close()
+        else:
+            g = open("search.txt", 'w')
+            for n in range(len(l)):
+                before=l[n][1]
+                if "protocol" in before:
+                    before=before.replace("protocol","")
+                if "recipes" in before:
+                    INDEX=before.index("recipes")
+                    INDEX=INDEX+8
+                    before=before[INDEX:]
+
+                
+                g.write(l[n][0]+"$"+before+"\n")
+            g.close()
+
+
+        #y=open("")
+                
             '''if not isfile("Allnames.txt"):
     # if the file names.txt does not exist
     # for example when running the app for
@@ -824,22 +891,233 @@ def cook():
 
 
 
+def openAll():
+    
+
+
+
+    global recBox
+    global ingBox
+    name=recBox.get(ACTIVE)
+    name=name+"protocol"
+    cwd=os.getcwd()
+    # the recipe to be opened is in the listbox called Box
+    # however this was saved with the name "recipenameprotocol" in the directory
+    # so protocol_file is a variable that stores this name as it is in the directory
+    #protocol_file=join("\\recipes",name+"protocol")
+    protocol_file="recipes\\"+name
+    openwindow=Tk()
+    btn=Button(openwindow,text="save to your computer")
+    btn.grid(row=0,column=0)
+    label=Label(openwindow,text="Name")
+    label.grid(row=1,column=0)
+    
+    label1=Label(openwindow,text="Ingredients")
+    label2=Label(openwindow,text="Preparation Time")
+    label3=Label(openwindow,text="serves:")
+    label4=Label(openwindow,text="Instructions")
+    cookit=Button(openwindow,text="cook",command=cook)
+    absent=Button(openwindow,text="need to buy", command=go_shopping)
+    label1.grid(row=2,column=0)
+    label2.grid(row=3,column=0)
+    label3.grid(row=4,column=0)
+    label4.grid(row=5,column=0)
+    cookit.grid(row=6,column=0)
+    absent.grid(row=7,column=0)
+    box=Text(openwindow,height="1")
+    
+    ingBox=Listbox(openwindow,width="107",height="15")
+    
+    timeBox=Text(openwindow,height="1")
+    
+    serves=Text(openwindow,height="1")
+    
+    ins=Text(openwindow,height="10")
+    
+
+    # initializing the list called "listt"
+    # as an empty list
+    listt=[]
+
+    # initializing another varibale "cn" to an empty string
+    cn=""
+
+    # the variable f stores all the lines as strings
+    # as elements in a list
+    # after the file is opened to read  in a variable "f"
+    f=open(protocol_file.replace(" ","")).readlines()
+    #nodestart is another variable that keeps track if
+    # some part of the recipe has started
+    # or is it just a # or @ or other parts of the protocol
+    nodestart=False
+    # according to the protocol the start of
+    # something is @ and the end is a newline and a #
+
+    # for loop goes over each line and checks
+    for i in range(len(f)):
+        # if the line has a # which is always in a separate
+        # line because of the \n at the end of it
+        # then this means the next line will have  what
+        # we need, an ingredient,name,etc
+        if "#" in f[i]:
+            nodestart=False
+            # cn is an empty string in the start however it is
+            # added to the empty list
+            # basically cn is the current node(or part of a string)
+            listt.append(cn)
+            # cn becomes empty again as it has added to the list
+            # whatever useful strings it found
+            cn=""
+           
+        if nodestart:
+            cn=cn+f[i]
+
+        # the start of anything useful from the file
+        # will always have an @ symbol
+        # so if this is found then nodestart becomes True
+        # and when this becomes true the previous condition
+        # adds that line from the list f to the current node or cn variable
+        # as soon as this ends , it reaches a #
+        # hence whatever the cn is till now
+        # it adds to the list
+        if "@" in f[i]:
+            nodestart=True
+
+
+    # because of the specific protocol that was followed when these recipes
+    # were saved in files
+    # we know by convention that the first thing in the file will
+    # always be the name, and the second the ingredients
+    # followed by the instructions
+    # followed by the number of people it serves
+    # and the last one will be the preparation time
+
+    # since these are the sequence of the parts of the recipe stored in the list
+    # called "listt" then this list is accessed when these are  to be displayed
+    Name=listt[0]
+    list_ingred=listt[1].split("\n")
+    prepTime=listt[4]
+    People=listt[3]
+    Instructions=listt[2]
+
+    # the list at different indices is a string so each for loop below
+    # loops over each part of this string and inserts it to its textbox
+    for k in range(len(Name)):
+    
+        box.insert(END,Name[k])
+
+    box.grid(row=1,column=1)
+
+    for q in range(len(list_ingred)):
+    
+        ingBox.insert(END,list_ingred[q])
+
+    ingBox.grid(row=2,column=1)
+
+    for w in range(len(prepTime)):
+    
+        timeBox.insert(END,prepTime[w])
+    timeBox.grid(row=3,column=1)
+
+    for x in range(len(People)):
+    
+        serves.insert(END,People[x])
+
+    serves.grid(row=4,column=1)
+
+    for y in range(len(Instructions)):
+    
+        ins.insert(END,Instructions[y])
+
+    ins.grid(row=5,column=1)
+
+
+    
+    openwindow.mainloop()
+
+
+def delfromAll():
+    global recBox
+
+
+
+    All=[]
+    delall=recBox.get(ACTIVE)
+    recBox.delete(ACTIVE)
+    All.append(delall)
+    with open('Allnames.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+        for line in oldfile:
+            if not any(bad_word in line for bad_word in All):
+                newfile.write(line)
+    oldfile.close()
+    os.remove("Allnames.txt")
+
+    os.rename("newfile.txt","Allnames.txt")
+
+    with open('search.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+        for line in oldfile:
+            if not any(bad_word in line for bad_word in All):
+                newfile.write(line)
+    oldfile.close()
+    os.remove("search.txt")
+
+    os.rename("newfile.txt","search.txt")
+
+
+
+
+#############################################      need to del file from dir ####################### 
+    
+
+def closingIt(event):
+    global recBox
+    recBox=None
+    
 
 # this function works the same way that the function
 # recipebox works except that this shows a list
 # of all the recipes and not only
 # the ones entered particularly by this user
 def All_recipes():
+    global recBox
     all_recipes=Tk()
     all_recipes.title("The Cookbook Club")
     labell_1=Label(all_recipes,text="All Recipes")
     labell_1.pack()
     recBox=Listbox(all_recipes,width="25",height="25")
+
+
+
+    if isfile("Allnames.txt"):
+        f = open("Allnames.txt")
+        text = f.read()
+        f.close()
+        text=text.replace("//","")
+        
+        text=text.split("\n")
+        # the names were the stored in a variable called "text" as it contains
+        # everything read from names.txt
+        # the .read() returns a string of all the data in names.txt and after
+        # removing the "//" this string is converted to a list with each name as
+        # an element because the \n was not removed when the // were removed
+        # and these indicate that a different recipe's name is being read
+        # the for loop goes over the list of names and adds them to the
+        # my recipes listbox
+        for i in range(len(text)):
+            if (text[i].replace(" ","")) not in recBox.get(0,END):
+                recBox.insert(END,text[i])
+
+
+
+
+    
     recBox.pack()
-    butn=Button(all_recipes,text="open")
+    butn=Button(all_recipes,text="open",command=openAll)
     butn.pack()
-    butn2=Button(all_recipes,text="Add to Favourites List")
+    butn2=Button(all_recipes,text="Delete Recipe",command=delfromAll)
     butn2.pack()
+
+    all_recipes.bind('<Destroy>',closingIt)
     all_recipes.mainloop()
 
 # this function is called when the button
@@ -1175,8 +1453,10 @@ def openingIt():
             # the name of the recipe is stored in a variable called "name_enter"
             # and inserted into the listbox containing the search results
             name_enter=filename.replace("protocol","")
+
+            if name_enter not in listb.get(0,END):
             
-            listb.insert(END,name_enter)
+                listb.insert(END,name_enter)
         # after each file is loaded and the keyword is searched  for in it
         # it must be closed before another file is loaded because
         # each file in the variable "f" is loaded using the for loop
@@ -1284,16 +1564,220 @@ def open_r():
     
     openwindow.mainloop()
 
+def openSearchR():
+    global list_B
+    global ingBox
+    name=list_B.get(ACTIVE)
+    name=name+"protocol"
+    cwd=os.getcwd()
+    # the recipe to be opened is in the listbox called Box
+    # however this was saved with the name "recipenameprotocol" in the directory
+    # so protocol_file is a variable that stores this name as it is in the directory
+    #protocol_file=join("\\recipes",name+"protocol")
+    protocol_file="recipes\\"+name
+    openwindow=Tk()
+    btn=Button(openwindow,text="save to your computer")
+    btn.grid(row=0,column=0)
+    label=Label(openwindow,text="Name")
+    label.grid(row=1,column=0)
     
+    label1=Label(openwindow,text="Ingredients")
+    label2=Label(openwindow,text="Preparation Time")
+    label3=Label(openwindow,text="serves:")
+    label4=Label(openwindow,text="Instructions")
+    cookit=Button(openwindow,text="cook",command=cook)
+    absent=Button(openwindow,text="need to buy", command=go_shopping)
+    label1.grid(row=2,column=0)
+    label2.grid(row=3,column=0)
+    label3.grid(row=4,column=0)
+    label4.grid(row=5,column=0)
+    cookit.grid(row=6,column=0)
+    absent.grid(row=7,column=0)
+    box=Text(openwindow,height="1")
+    
+    ingBox=Listbox(openwindow,width="107",height="15")
+    
+    timeBox=Text(openwindow,height="1")
+    
+    serves=Text(openwindow,height="1")
+    
+    ins=Text(openwindow,height="10")
+    
+
+    # initializing the list called "listt"
+    # as an empty list
+    listt=[]
+
+    # initializing another varibale "cn" to an empty string
+    cn=""
+
+    # the variable f stores all the lines as strings
+    # as elements in a list
+    # after the file is opened to read  in a variable "f"
+    f=open(protocol_file.replace(" ","")).readlines()
+    #nodestart is another variable that keeps track if
+    # some part of the recipe has started
+    # or is it just a # or @ or other parts of the protocol
+    nodestart=False
+    # according to the protocol the start of
+    # something is @ and the end is a newline and a #
+
+    # for loop goes over each line and checks
+    for i in range(len(f)):
+        # if the line has a # which is always in a separate
+        # line because of the \n at the end of it
+        # then this means the next line will have  what
+        # we need, an ingredient,name,etc
+        if "#" in f[i]:
+            nodestart=False
+            # cn is an empty string in the start however it is
+            # added to the empty list
+            # basically cn is the current node(or part of a string)
+            listt.append(cn)
+            # cn becomes empty again as it has added to the list
+            # whatever useful strings it found
+            cn=""
+           
+        if nodestart:
+            cn=cn+f[i]
+
+        # the start of anything useful from the file
+        # will always have an @ symbol
+        # so if this is found then nodestart becomes True
+        # and when this becomes true the previous condition
+        # adds that line from the list f to the current node or cn variable
+        # as soon as this ends , it reaches a #
+        # hence whatever the cn is till now
+        # it adds to the list
+        if "@" in f[i]:
+            nodestart=True
+
+
+    # because of the specific protocol that was followed when these recipes
+    # were saved in files
+    # we know by convention that the first thing in the file will
+    # always be the name, and the second the ingredients
+    # followed by the instructions
+    # followed by the number of people it serves
+    # and the last one will be the preparation time
+
+    # since these are the sequence of the parts of the recipe stored in the list
+    # called "listt" then this list is accessed when these are  to be displayed
+    Name=listt[0]
+    list_ingred=listt[1].split("\n")
+    prepTime=listt[4]
+    People=listt[3]
+    Instructions=listt[2]
+
+    # the list at different indices is a string so each for loop below
+    # loops over each part of this string and inserts it to its textbox
+    for k in range(len(Name)):
+    
+        box.insert(END,Name[k])
+
+    box.grid(row=1,column=1)
+
+    for q in range(len(list_ingred)):
+    
+        ingBox.insert(END,list_ingred[q])
+
+    ingBox.grid(row=2,column=1)
+
+    for w in range(len(prepTime)):
+    
+        timeBox.insert(END,prepTime[w])
+    timeBox.grid(row=3,column=1)
+
+    for x in range(len(People)):
+    
+        serves.insert(END,People[x])
+
+    serves.grid(row=4,column=1)
+
+    for y in range(len(Instructions)):
+    
+        ins.insert(END,Instructions[y])
+
+    ins.grid(row=5,column=1)
+
+
+    
+    openwindow.mainloop()
+
+
+
+def searchByuser():
+    global TB
+    global list_B
+    Openn=Tk()
+    Openn.title("Search Results")
+    Results=Label(Openn,text="Found what you were looking for?")
+    Results.pack()    
+    list_B=Listbox(Openn,width="45")
+    # . get() just gets the keyword the user enters
+    entered=TB.get(1.0,END)
+    entered=entered.strip()
+    
+    entered=entered.lower()
+    #print entered, "for searching"
+
+    empty=[]
+    z=open("search.txt")
+    ls=z.readlines()
+    z.close()
+    for f in range (len(ls)):
+        IND=ls[f].index("$")
+        IND=IND+1
+        FN=ls[f]
+        F_N=FN[IND:]
+        N=FN[:IND-1]
+        N=N.strip()
+        F_N=F_N.strip()
+        N_FN=(N,F_N)
+        empty.append(N_FN)
+    print empty, "list of users and filnames"
+    for u in range(len(empty)):
+        if entered in empty[u][0]:
+            if empty[u][1] not in list_B.get(0,END):
+                list_B.insert(1,empty[u][1])
+
+    
+    
+    if len(list(list_B.get(0,END)))==0:
+        list_B.insert(END,"Sorry no matches,try searching with different keyword")
+        
+    list_B.pack()
+    b1=Button(Openn,text="open",command=openSearchR)
+    b1.pack()
+    
+
+
+def search_user():
+    # the window opened contains a textbox called tb
+    # this is made global because the text entered by the
+    # user into this textbox is used in another function
+    # called when the "find" button from this window is clicked
+    # after the user enters the keyword to be searched
+    # this window has the following gui with a button and a
+    # small textbox and a label
+    global TB
+    opennn=Tk()
+    opennn.title("Search By User Who Added Recipe")
+    TB=Text(opennn,width="35",height="1")
+    
+    
+    '''for filename in os.listdir(os.getcwd()+"\\recipes"):
+        print filename'''
+    TB.grid(row=0,column=1)
+    labbl=Label(opennn,text="Enter the username")
+    labbl.grid(row=0,column=0)
+    find_bttn=Button(opennn,text="Find",command=searchByuser)
+    find_bttn.grid(row=0,column=2)
+    opennn.mainloop()    
 
         
     
     
-
-
-
-
-
 
 
 
@@ -1973,8 +2457,8 @@ def openList():
             # the name of that recipe is appended to the lb made above
             # on the window which opens
             # when this function is called
-            
-            lb.insert(END,filename)
+            if filename not in lb.get(0,END):
+                lb.insert(END,filename)
 
     # if len(list(lb.get(0,END)))==0 checks for the following:
     # incase no match is found for this particular keyword
@@ -2016,7 +2500,197 @@ def search_name():
     find_btn.grid(row=0,column=2)
     openthis.mainloop()
 
+def openhungry():
+    global LB
+    global ingBox
+    name=LB.get(ACTIVE)
+    name=name+"protocol"
+    cwd=os.getcwd()
+    # the recipe to be opened is in the listbox called Box
+    # however this was saved with the name "recipenameprotocol" in the directory
+    # so protocol_file is a variable that stores this name as it is in the directory
+    #protocol_file=join("\\recipes",name+"protocol")
+    protocol_file="recipes\\"+name
+    openwindow=Tk()
+    btn=Button(openwindow,text="save to your computer")
+    btn.grid(row=0,column=0)
+    label=Label(openwindow,text="Name")
+    label.grid(row=1,column=0)
+    
+    label1=Label(openwindow,text="Ingredients")
+    label2=Label(openwindow,text="Preparation Time")
+    label3=Label(openwindow,text="serves:")
+    label4=Label(openwindow,text="Instructions")
+    cookit=Button(openwindow,text="cook",command=cook)
+    absent=Button(openwindow,text="need to buy", command=go_shopping)
+    label1.grid(row=2,column=0)
+    label2.grid(row=3,column=0)
+    label3.grid(row=4,column=0)
+    label4.grid(row=5,column=0)
+    cookit.grid(row=6,column=0)
+    absent.grid(row=7,column=0)
+    box=Text(openwindow,height="1")
+    
+    ingBox=Listbox(openwindow,width="107",height="15")
+    
+    timeBox=Text(openwindow,height="1")
+    
+    serves=Text(openwindow,height="1")
+    
+    ins=Text(openwindow,height="10")
+    
 
+    # initializing the list called "listt"
+    # as an empty list
+    listt=[]
+
+    # initializing another varibale "cn" to an empty string
+    cn=""
+
+    # the variable f stores all the lines as strings
+    # as elements in a list
+    # after the file is opened to read  in a variable "f"
+    f=open(protocol_file.replace(" ","")).readlines()
+    #nodestart is another variable that keeps track if
+    # some part of the recipe has started
+    # or is it just a # or @ or other parts of the protocol
+    nodestart=False
+    # according to the protocol the start of
+    # something is @ and the end is a newline and a #
+
+    # for loop goes over each line and checks
+    for i in range(len(f)):
+        # if the line has a # which is always in a separate
+        # line because of the \n at the end of it
+        # then this means the next line will have  what
+        # we need, an ingredient,name,etc
+        if "#" in f[i]:
+            nodestart=False
+            # cn is an empty string in the start however it is
+            # added to the empty list
+            # basically cn is the current node(or part of a string)
+            listt.append(cn)
+            # cn becomes empty again as it has added to the list
+            # whatever useful strings it found
+            cn=""
+           
+        if nodestart:
+            cn=cn+f[i]
+
+        # the start of anything useful from the file
+        # will always have an @ symbol
+        # so if this is found then nodestart becomes True
+        # and when this becomes true the previous condition
+        # adds that line from the list f to the current node or cn variable
+        # as soon as this ends , it reaches a #
+        # hence whatever the cn is till now
+        # it adds to the list
+        if "@" in f[i]:
+            nodestart=True
+
+
+    # because of the specific protocol that was followed when these recipes
+    # were saved in files
+    # we know by convention that the first thing in the file will
+    # always be the name, and the second the ingredients
+    # followed by the instructions
+    # followed by the number of people it serves
+    # and the last one will be the preparation time
+
+    # since these are the sequence of the parts of the recipe stored in the list
+    # called "listt" then this list is accessed when these are  to be displayed
+    Name=listt[0]
+    list_ingred=listt[1].split("\n")
+    prepTime=listt[4]
+    People=listt[3]
+    Instructions=listt[2]
+
+    # the list at different indices is a string so each for loop below
+    # loops over each part of this string and inserts it to its textbox
+    for k in range(len(Name)):
+    
+        box.insert(END,Name[k])
+
+    box.grid(row=1,column=1)
+
+    for q in range(len(list_ingred)):
+    
+        ingBox.insert(END,list_ingred[q])
+
+    ingBox.grid(row=2,column=1)
+
+    for w in range(len(prepTime)):
+    
+        timeBox.insert(END,prepTime[w])
+    timeBox.grid(row=3,column=1)
+
+    for x in range(len(People)):
+    
+        serves.insert(END,People[x])
+
+    serves.grid(row=4,column=1)
+
+    for y in range(len(Instructions)):
+    
+        ins.insert(END,Instructions[y])
+
+    ins.grid(row=5,column=1)
+
+
+    
+    openwindow.mainloop()
+
+    
+    
+def Randrec():
+    global LB
+    t=[]
+    f=open("Allnames.txt")
+    Lineslist=f.readlines()
+    f.close()
+    for i in range(len(Lineslist)):
+        v=Lineslist[i]
+        v=v.strip()
+        v=v.replace("//","")
+        if v not in t:
+            t.append(v)
+    l_rd=random.choice(t)
+    l_rd=l_rd.strip()
+    if l_rd not in LB.get(0,END):
+        LB.delete(0,END)
+        LB.insert(0,l_rd)
+
+def hungry():
+    global LB
+    t=[]
+    f=open("Allnames.txt")
+    Lineslist=f.readlines()
+    f.close()
+    for i in range(len(Lineslist)):
+        v=Lineslist[i]
+        v=v.strip()
+        v=v.replace("//","")
+        if v not in t:
+            t.append(v)
+    l_rd=random.choice(t)
+    l_rd=l_rd.strip()
+    dialogB=Tk()
+    Lab=Label(dialogB,text="Go for it!!!")
+    Lab.pack()
+    LB=Listbox(dialogB,width="30",height="10")
+   
+    if l_rd not in LB.get(0,END):
+        LB.insert(0,l_rd)
+    LB.pack()
+    OBtn=Button(dialogB,text="Click and Satisfy Your Cravings!!!",command=openhungry)
+    OBtn.pack()
+    again=Button(dialogB,text="Don't feel like it? Try your luck again!",command=Randrec)
+    again.pack()
+    dialogB.mainloop()
+    
+    fil=l_rd+"protocol"
+    print fil,l_rd
+        
 
 # called when the "Join the Cookbook Club" button
 # from the first window that opens when the maincode is run
@@ -2041,7 +2715,7 @@ def start():
     button5.grid(row=0,column=5)
     button6=Button(menu,text="Grocery List",command=openGrocery)
     button6.grid(row=0,column=2)
-    button7=Button(menu,text="Hungry?")
+    button7=Button(menu,text="Feeling Hungry?",command=hungry)
     button7.grid(row=0,column=3)
     search=Label(menu,text="Search by:")
     search.grid(row=0,column=6)
@@ -2049,14 +2723,14 @@ def start():
     filter1.grid(row=1,column=6)
     filter2=Button(menu,text="Ingredient",command=search_ing)
     filter2.grid(row=2,column=6)
-    filter3=Button(menu,text="User")
+    filter3=Button(menu,text="User",command=search_user)
     filter3.grid(row=3,column=6)
-    button8=Button(menu,text="Notifications")
-    button8.grid(row=0,column=4)
+    #button8=Button(menu,text="Notifications")
+    #button8.grid(row=0,column=4)
     newsfeed=Label(menu,text="Newsfeed")
     newsfeed.grid(row=0,column=1)
     cookbook=Button(menu,text="Main Cookbook", command=All_recipes)
-    cookbook.grid(row=1,column=4)
+    cookbook.grid(row=0,column=4)
     Txt=Text(menu,height="20")
     Txt.grid(row=1,column=1)
     menu.mainloop()
@@ -2159,7 +2833,27 @@ def check():
             
 
 
+def Help():
+    
+    wn=Tk()
+    wn.title("How to Use")
 
+    TextB=Text(wn)
+    TextB.insert("1.0","The all-new, My Digital Cookbook makes cooking fun! Take as many recipes as you want, your grocery list,"+
+                 " and your entire cookbook anywhere.\nThis cookbook is the ultimate tool to help"+
+                 " home cooks get inspired and organizedin the kitchen and on the go.\n\nBe Social as you cook!\n"
+    +"Get your friends and family download this app and get inspired by what they haveto share!"+
+            "Exchange, share and save recipes! Your Newsfeed will always keep you updated!\n")
+    TextB.insert("11.0","\nGrocery List\n"+
+     "Shop smart!!! Create a grocery list for your household."+
+                 
+                 "Easily mark them off or remove them as you shop.\n\n"+
+                 "Activity\n"+
+                    "Get notified when someone posts a recipe!\n\n"+
+                 "'Feeling Hungry?'\nAnother interesting feature gives a random recipe you'd love to try!!!")
+    TextB.pack()
+    
+    wn.mainloop()
 
 def logging_in():
     #this function creates the main menu window called "chatWindow" after the loginWindow
@@ -2206,7 +2900,7 @@ def logging_in():
         panel.pack(side="bottom", fill = "both", expand = "yes")
         
         root.title("My Digital CookBook")
-        help_btn=Button(root,text="About")
+        help_btn=Button(root,text="About",command=Help)
         help_btn.pack()
         btn=Button(root,text="Join the Cookbook Club",command=start)
         btn.pack()
