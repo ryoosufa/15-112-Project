@@ -467,6 +467,11 @@ def getMail(s):
                 f.close()
 
 
+            t=open("recipes\\"+F+"protocol",'w')
+            t.write(l_actualcont[i][2])
+            t.close()
+
+
 
 
 
@@ -1062,6 +1067,16 @@ def delfromAll():
     os.remove("search.txt")
 
     os.rename("newfile.txt","search.txt")
+
+
+    with open('names.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+        for line in oldfile:
+            if not any(bad_word in line for bad_word in All):
+                newfile.write(line)
+    oldfile.close()
+    os.remove("names.txt")
+
+    os.rename("newfile.txt","names.txt")
 
     delall=delall.strip()
     delall=delall.replace(" ","")
@@ -2686,28 +2701,38 @@ def hungry():
     f=open("Allnames.txt")
     Lineslist=f.readlines()
     f.close()
-    for i in range(len(Lineslist)):
-        v=Lineslist[i]
-        v=v.strip()
-        v=v.replace("//","")
-        if v not in t:
-            t.append(v)
-    l_rd=random.choice(t)
-    l_rd=l_rd.strip()
     dialogB=Tk()
+    LB=Listbox(dialogB,width="30",height="10")
+    if len(Lineslist)>0:
+        for i in range(len(Lineslist)):
+            v=Lineslist[i]
+            v=v.strip()
+            v=v.replace("//","")
+            if v not in t:
+                t.append(v)
+        l_rd=random.choice(t)
+        l_rd=l_rd.strip()
+
+        if l_rd not in LB.get(0,END):
+            LB.insert(0,l_rd)
+    LB.pack()
     Lab=Label(dialogB,text="Go for it!!!")
     Lab.pack()
-    LB=Listbox(dialogB,width="30",height="10")
+    
    
-    if l_rd not in LB.get(0,END):
-        LB.insert(0,l_rd)
-    LB.pack()
+    
+    
     OBtn=Button(dialogB,text="Click and Satisfy Your Cravings!!!",command=openhungry)
     OBtn.pack()
     again=Button(dialogB,text="Don't feel like it? Try your luck again!",command=Randrec)
     again.pack()
-    dialogB.mainloop()
     
+    if len(LB.get(0,END))==0:
+        OBtn.config(state="disabled")
+        again.config(state="disabled")
+
+
+    dialogB.mainloop()
     fil=l_rd+"protocol"
     print fil,l_rd
         
