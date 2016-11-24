@@ -1050,33 +1050,34 @@ def delfromAll():
     delall=recBox.get(ACTIVE)
     recBox.delete(ACTIVE)
     All.append(delall)
-    with open('Allnames.txt') as oldfile, open('newfile.txt', 'w') as newfile:
-        for line in oldfile:
-            if not any(bad_word in line for bad_word in All):
-                newfile.write(line)
-    oldfile.close()
-    os.remove("Allnames.txt")
+    if exists("Allnames.txt"):
+        with open('Allnames.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+            for line in oldfile:
+                if not any(bad_word in line for bad_word in All):
+                    newfile.write(line)
+        oldfile.close()
+        os.remove("Allnames.txt")
 
     os.rename("newfile.txt","Allnames.txt")
-
-    with open('search.txt') as oldfile, open('newfile.txt', 'w') as newfile:
-        for line in oldfile:
-            if not any(bad_word in line for bad_word in All):
-                newfile.write(line)
-    oldfile.close()
-    os.remove("search.txt")
+    if exists("search.txt"):
+        with open('search.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+            for line in oldfile:
+                if not any(bad_word in line for bad_word in All):
+                    newfile.write(line)
+        oldfile.close()
+        os.remove("search.txt")
 
     os.rename("newfile.txt","search.txt")
 
+    if exists("names.txt"):
+        with open('names.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+            for line in oldfile:
+                if not any(bad_word in line for bad_word in All):
+                    newfile.write(line)
+        oldfile.close()
+        os.remove("names.txt")
 
-    with open('names.txt') as oldfile, open('newfile.txt', 'w') as newfile:
-        for line in oldfile:
-            if not any(bad_word in line for bad_word in All):
-                newfile.write(line)
-    oldfile.close()
-    os.remove("names.txt")
-
-    os.rename("newfile.txt","names.txt")
+        os.rename("newfile.txt","names.txt")
 
     delall=delall.strip()
     delall=delall.replace(" ","")
@@ -1094,8 +1095,7 @@ def delfromAll():
 
 
 
-#############################################      need to del file from dir ####################### 
-    
+
 
 def closingIt(event):
     global recBox
@@ -1123,6 +1123,7 @@ def All_recipes():
         text=text.replace("//","")
         
         text=text.split("\n")
+        print "text is",text
         # the names were the stored in a variable called "text" as it contains
         # everything read from names.txt
         # the .read() returns a string of all the data in names.txt and after
@@ -1132,7 +1133,7 @@ def All_recipes():
         # the for loop goes over the list of names and adds them to the
         # my recipes listbox
         for i in range(len(text)):
-            if (text[i].replace(" ","")) not in recBox.get(0,END):
+            if (text[i].replace(" ","")) not in recBox.get(0,END) and text[i]!="":
                 recBox.insert(END,text[i])
 
 
@@ -1145,6 +1146,11 @@ def All_recipes():
     butn2=Button(all_recipes,text="Delete Recipe",command=delfromAll)
     butn2.pack()
 
+    print len(list(recBox.get(0,END))), "len"
+    if len(list(recBox.get(0,END)))==0:
+        "entered yayyyyyy"
+        butn.config(state="disabled")
+        butn2.config(state="disabled")
     all_recipes.bind('<Destroy>',closingIt)
     all_recipes.mainloop()
 
@@ -1197,7 +1203,7 @@ def FavsWnd():
     global listFavz
     global Box
     global favBox
-    favourites.title("Favvourite Recipes")
+    favourites.title("Favourite Recipes")
     label_1=Label(favourites,text="Favourites")
     label_1.pack()
     favBox=Listbox(favourites,width="25",height="25")
@@ -1237,7 +1243,10 @@ def FavsWnd():
 
 
 
-    
+    if len(favBox.get(0,END))==0:
+        butn.config(state="disabled")
+        butnn.config(state="disabled")
+        
     favourites.bind('<Destroy>',winClosed)
     
     favourites.mainloop()
@@ -1319,7 +1328,10 @@ def openGrocery():
             if text[i] not in Box1.get(0,END):
                 Box1.insert(END,text[i])
 
-    
+
+
+    if (len(Box1.get(0,END)))==0:
+        Btn2.config(state="disabled")
     show.bind('<Destroy>',windowClosed)
     show.mainloop()
     
@@ -1354,15 +1366,15 @@ def delR():
     Box.delete(ACTIVE)
     r.append(rem)
     
-    
-    with open('names.txt') as oldfile, open('newfile.txt', 'w') as newfile:
-        for line in oldfile:
-            if not any(bad_word in line for bad_word in r):
-                newfile.write(line)
-    oldfile.close()
-    os.remove("names.txt")
+    if isfile("names.txt"):
+        with open('names.txt') as oldfile, open('newfile.txt', 'w') as newfile:
+            for line in oldfile:
+                if not any(bad_word in line for bad_word in r):
+                    newfile.write(line)
+        oldfile.close()
+        os.remove("names.txt")
 
-    os.rename("newfile.txt","names.txt")
+        os.rename("newfile.txt","names.txt")
 
     
     
@@ -1433,6 +1445,10 @@ def recipebox():
     openBtn.pack()
     favsBtn.pack()
     delbtn.pack()
+    if len(Box.get(0,END))==0:
+        openBtn.config(state="disabled")
+        favsBtn.config(state="disabled")
+        delbtn.config(state="disabled")
     openit.bind('<Destroy>',wnClosed)
     openit.mainloop()
     
@@ -2727,12 +2743,12 @@ def hungry():
     again=Button(dialogB,text="Don't feel like it? Try your luck again!",command=Randrec)
     again.pack()
     
-    if len(LB.get(0,END))==0:
+    if len(list(LB.get(0,END)))==0:
         OBtn.config(state="disabled")
         again.config(state="disabled")
-
-
     dialogB.mainloop()
+
+    
     fil=l_rd+"protocol"
     print fil,l_rd
         
