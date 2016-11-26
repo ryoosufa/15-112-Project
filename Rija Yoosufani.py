@@ -581,13 +581,13 @@ def getMail(s):
             # it writes to the file the tuple at index 2, which is the file content by t.write(l_actualcont[k][2])
             if exists(cwd+"\\recipes"):
                 t=open("recipes\\"+F,'w')
-                t.write(l_actualcont[k][2])
+                t.write(l_actualcont[i][2])
                 
                 t.close()
             else:
                 os.makedirs(cwd+"\\recipes")
                 t=open("recipes\\"+F,'w')
-                t.write(l_actualcont[k][2])
+                t.write(l_actualcont[i][2])
                 
                 t.close()
 
