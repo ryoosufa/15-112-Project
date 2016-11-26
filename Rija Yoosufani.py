@@ -1412,7 +1412,7 @@ def FavsWnd():
     if listFavz!=None and (len(listFavz))!=0:
         
         for i in range (len(listFavz)):
-            p
+            
             favBox.insert(END,listFavz[i])
 
 
